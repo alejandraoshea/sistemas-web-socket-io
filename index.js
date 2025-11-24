@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const path = require('path');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const http = require('http');
@@ -9,13 +10,17 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
+const sessionMiddleware = session({
   secret: 'clave-secreta',
   resave: false,
   saveUninitialized: false,
-}));
+});
+app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -25,7 +30,10 @@ const users = [
   { id: 2, username: 'maria', password: 'abcd' },
 ];
 
-passport.use(new LocalStrategy((username, password, done) => {
+passport.use(new LocalStrategy({
+  usernameField: 'user',
+  passwordField: 'pass',
+}, (username, password, done) => {
   const user = users.find(u => u.username === username && u.password === password);
   if (!user) return done(null, false, { message: 'Usuario o contraseña incorrectos' });
   return done(null, user);
@@ -42,98 +50,56 @@ function ensureAuthenticated(req, res, next) {
   res.redirect('/login');
 }
 
+// Rutas
+app.get('/', (req, res) => {
+  res.render('index', {
+    logged: req.isAuthenticated(),
+    items: [  
+      { title: 'Imagen 1', img: '/images/img1.jpg' },
+      { title: 'Imagen 2', img: '/images/img2.jpg' },
+    ]
+  });
+});
+
 app.get('/login', (req, res) => {
-  res.send(`
-    <h1>Login</h1>
-    <form method="post" action="/login">
-      <input name="username" placeholder="Usuario" required>
-      <input name="password" type="password" placeholder="Contraseña" required>
-      <button type="submit">Entrar</button>
-    </form>
-  `);
+  res.render('login', { error: null });
 });
 
 app.post('/login',
   passport.authenticate('local', {
-    successRedirect: '/',
-    failureRedirect: '/login'
+    failureRedirect: '/login-fail',
+    successRedirect: '/'
   })
 );
 
-app.get('/', ensureAuthenticated, (req, res) => {
-  res.send(`
-    <h1>Chat</h1>
-    <p>Bienvenido, ${req.user.username} | <a href="/logout">Salir</a></p>
-    <div id="chat"></div>
-    <form id="form">
-      <input id="input" autocomplete="off" /><button>Enviar</button>
-    </form>
-    
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
+app.get('/login-fail', (req, res) => {
+  res.render('login', { error: 'Usuario o contraseña incorrectos' });
+});
 
-      const form = document.getElementById('form');
-      const input = document.getElementById('input');
-      const chat = document.getElementById('chat');
-
-      socket.on('chat history', (msgs) => {
-        chat.innerHTML = '';
-        msgs.forEach(m => {
-          const item = document.createElement('div');
-          item.textContent = m.username + ': ' + m.message;
-          chat.appendChild(item);
-        });
-      });
-
-      socket.on('chat message', (msg) => {
-        const item = document.createElement('div');
-        item.textContent = msg.username + ': ' + msg.message;
-        chat.appendChild(item);
-      });
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (input.value) {
-          socket.emit('chat message', input.value);
-          input.value = '';
-        }
-      });
-    </script>
-  `);
+app.get('/private', ensureAuthenticated, (req, res) => {
+  res.render('private', { user: req.user.username });
 });
 
 app.get('/logout', (req, res) => {
   req.logout(() => {
-    res.redirect('/login');
+    res.redirect('/');
   });
+});
+
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
+io.use((socket, next) => {
+  const req = socket.request;
+  if (req.session && req.session.passport && req.session.passport.user) {
+    return next();
+  }
+  next(new Error('No autenticado'));
 });
 
 const chatHistory = [];
 const MAX_HISTORY = 20;
-
-io.use((socket, next) => {
-  let handshake = socket.request;
-  sessionMiddleware(handshake, {}, () => {
-    if (handshake.session.passport && handshake.session.passport.user) {
-      return next();
-    } else {
-      return next(new Error('No autenticado'));
-    }
-  });
-});
-
-const sessionMiddleware = session({
-  secret: 'clave-secreta',
-  resave: false,
-  saveUninitialized: false,
-});
-
-app.use(sessionMiddleware);
-
-io.use((socket, next) => {
-  sessionMiddleware(socket.request, socket.request.res || {}, next);
-});
 
 io.on('connection', (socket) => {
   const userId = socket.request.session.passport.user;
@@ -151,5 +117,5 @@ io.on('connection', (socket) => {
 });
 
 server.listen(3000, () => {
-  console.log('Servidor iniciado en http://localhost:3000');
+  console.log('Servidor escuchando en http://localhost:3000');
 });

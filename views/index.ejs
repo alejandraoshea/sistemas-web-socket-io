@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Página Inicial - Max Verstappen</title>
+  <link rel="stylesheet" href="/styles/style.css" />
+</head>
+<body>
+
+  <h1>Página Inicial</h1>
+
+  <% if (logged) { %>
+    <h2>Elementos cargados desde el servidor:</h2>
+    <div class="images-container">
+      <% items.forEach(item => { %>
+        <div class="item">
+          <h3><%= item.title %></h3>
+          <img src="<%= item.img %>" alt="<%= item.title %>" />
+        </div>
+      <% }) %>
+    </div>
+
+    <br>
+    <a href="/private"><button>Ir a página privada</button></a>
+    <br><br>
+    <a href="/logout">Cerrar sesión</a>
+    <div id="chat-container" style="border:1px solid #ccc; padding:10px; margin-top:20px;">
+      <h3>Chat en vivo</h3>
+      <div id="chat" style="height: 200px; overflow-y: scroll; border:1px solid #ddd; padding:5px;"></div>
+      <form id="chat-form">
+        <input id="chat-input" autocomplete="off" placeholder="Escribe tu mensaje" />
+        <button>Enviar</button>
+      </form>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      const chatDiv = document.getElementById('chat');
+      const form = document.getElementById('chat-form');
+      const input = document.getElementById('chat-input');
+
+      function addMessage(msg) {
+        const div = document.createElement('div');
+        div.textContent = msg.username + ': ' + msg.message;
+        chatDiv.appendChild(div);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+      }
+
+      socket.on('chat history', (msgs) => {
+        chatDiv.innerHTML = '';
+        msgs.forEach(addMessage);
+      });
+
+      // Nuevos mensajes
+      socket.on('chat message', addMessage);
+
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        if (input.value.trim()) {
+          socket.emit('chat message', input.value);
+          input.value = '';
+        }
+      });
+    </script>
+  <% } else { %>
+
+    <div class="login-prompt">
+      <p>Bienvenido! Por favor inicia sesión para ver las imágenes.</p>
+      <a href="/login"><button>Iniciar sesión</button></a>
+    </div>
+
+  <% } %>
+
+</body>
+</html>

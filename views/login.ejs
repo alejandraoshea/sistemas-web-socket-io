@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Página Inicial - Max Verstappen Fan</title>
+  <link rel="stylesheet" href="/styles/style.css" />
+</head>
+<body>
+    <h1>Login</h1>
+
+    <% if (error) { %>
+    <p class="error-message"><%= error %></p>
+    <% } %>
+
+    <form method="POST">
+    <label>Usuario:</label>
+    <input type="text" name="user" required>
+
+    <label>Contraseña:</label>
+    <input type="password" name="pass" required>
+
+    <button type="submit">Entrar</button>
+    </form>
+</body>
