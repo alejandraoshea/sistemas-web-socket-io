@@ -55,8 +55,11 @@ app.get('/', (req, res) => {
   res.render('index', {
     logged: req.isAuthenticated(),
     items: [  
-      { title: 'Imagen 1', img: '/images/img1.jpg' },
-      { title: 'Imagen 2', img: '/images/img2.jpg' },
+      { title: 'Max 1', img: '/images/mv1-1.jpg' },
+      { title: 'Max 2', img: '/images/mv1-2.jpg' },
+      { title: 'Max 3', img: '/images/mv1-3.jpg' },
+      { title: 'Max 4', img: '/images/mv1-4.jpg' },
+      { title: 'Max 5', img: '/images/mv1-5.jpg' },
     ]
   });
 });

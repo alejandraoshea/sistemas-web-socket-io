@@ -73,7 +73,6 @@ form {
   max-width: 350px;
   margin: 20px auto;
   border-radius: 10px;
-  box-shadow: 0 0 15px #4636f4;
   color: #a81616;
   font-weight: bold;
 }
@@ -132,4 +131,70 @@ a.logout-link {
 a.logout-link:hover {
   background-color: #8a2c2c;
   color: white;
+}
+
+#chat-container {
+  background-color: #1c096147;
+  border: 2px solid #2d056e;
+  border-radius: 5px;
+  padding: 20px;
+  margin: 10px auto 0;
+  color: #f0f0f0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#chat-container h3 {
+  text-align: center;
+  color: #160760;
+  margin: 0 0 15px;
+}
+
+#chat {
+  height: 250px;
+  overflow-y: auto;
+  border: 2px solid #2d056e;
+  border-radius: 8px;
+  padding: 10px;
+  background-color: #1c096147;
+  color: #e0e0ea;
+  font-size: 0.9rem;
+}
+
+#chat div.message {
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border-radius: 5px;
+  background-color: rgba(168, 22, 22, 0.8); 
+  color: #f0f0f0;
+  font-weight: bold;
+}
+
+#chat-form {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+#chat-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 6px;
+  border: 2px solid #2d056e;
+  background-color: #1c096147;
+  color: #fefefe;
+  font-size: 1rem;
+}
+
+#chat-form button {
+  background-color: #8a2c2c;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#chat-form button:hover {
+  background-color: #a63a3a;
 }
